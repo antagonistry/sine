@@ -47,20 +47,12 @@ list that contains all of them:
 | &      | Decreases cell pointer by 1. |
 | >      | Increases counter ptr. by 1. |
 | <      | Decreases counter ptr. by 1. |
-| $      |
-Increases counter from its pointer by 1. |
-| @      |
-Increases counter from its pointer by 4. |
-| !      |
-Decreases counter from its pointer by 1. |
-| ;      |
-Decreases counter from its pointer by 4. |
-| %      |
-Set the last cell's character to the
-previously defined character in code. |
-| ^      |
-Removes the last cell's character. |
+| $      | Increases counter from its pointer by 1. |
+| @      | Increases counter from its pointer by 4. |
+| !      | Decreases counter from its pointer by 1. |
+| ;      | Decreases counter from its pointer by 4. |
+| %      | Set the last cell's character to the previously defined character in code. |
+| ^      | Removes the last cell's character. |
 | #      | Output the counter's value.  |
 | .      | Output the cell's value.     |
-| \      |
-Ignores the next command next to it. |
+| \      | Ignores the next command next to it. |

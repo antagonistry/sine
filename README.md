@@ -17,7 +17,7 @@ intelligence have been used.
 
 ```sh
 git clone \
-	https://github.com/antagonistry/sine
+https://github.com/antagonistry/sine.git
 ```
 
 ### Second Step:
