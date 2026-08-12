@@ -11,29 +11,71 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <signal.h>
 
 /* == sine constants == */
 
-const int _sine_version = 1;
-const int _sine_max_cells = 2048;
-const int _sine_max_counters = 2048;
-const int _sine_cell_size = 512;
+#define _sine_version		(2)
+#define _sine_file_extension	(".sn")
+#define _sine_max_cells		(2048)
+#define _sine_max_counters	(2048)
+#define _sine_max_runs		(64)
+#define _sine_cell_size		(512)
+#define _sine_data_size		(256)
+
+/* == sine static variables == */
+
+static
+int _sine_runs_count = 0;
+
+/* == sine global variables == */
+
+char sine_cells
+	[_sine_max_cells][_sine_cell_size];
+
+int_fast8_t sine_counters
+	[_sine_max_counters];
+
+/* == sine static
+	functions declarations == */
+
+static
+void _sine_show_usage(void);
+
+static
+void _sine_show_version(void);
+
+static
+void _sine_show_error(int ref);
+
+static
+void _sine_run_pattern(
+	int argc,
+	char **argv
+);
+
+/* == sine global
+	functions declarations == */
+
+void sine_exec(int argc, char **argv);
 
 /* == sine static functions == */
 
 static
 void _sine_show_usage(void) {
-	puts("[sine usage]");
-	puts("- sine _run [pattern]");
-	puts("- sine _help");
-	puts("- sine _version");
+	puts("[sine: usage] {");
+	puts("\tsine _run <pattern-file>");
+	puts("\tsine _help");
+	puts("\tsine _version");
+	puts("}");
 }
 
 static
 void _sine_show_version(void) {
 	fprintf(
 		stdout,
-		"[sine %04d]\n",
+		"[sine: version]\n"
+		"{ %02d }\n",
 		_sine_version
 	);
 }
@@ -45,32 +87,70 @@ void _sine_show_error(int ref) {
 	switch (ref) {
 case 1: text = "too many arguments."; break;
 case 2: text = "unknown option."; break;
-case 3: text = "too many files."; break;
-case 4: text = "file is unreachable."; break;
+case 3: text = "too few arguments."; break;
+case 4: text = "too many files."; break;
+case 5: text = "file is unreachable."; break;
+case 6:
+	text = "unsupported file type.";
+	break;
+case 7: text = "too many runs."; break;
+case 8:
+	text = "stack overflows.";
+	break;
 default:
 	text = "unknown error reference.";
 	break;
 	}
 
-	fputs("! ", stderr);
+	fputs("[sine: error]\n{ ", stderr);
 	fputs(text, stderr);
-	fputc('\n', stderr);
+	fputs(" }\n", stderr);
 	exit(EXIT_FAILURE);
 }
 
 static
-void _sine_run_pattern(int argc, char **argv) {
-	switch (argc) {
-		case 3: break;
-		default:
-			_sine_show_error(3);
+void _sine_run_pattern(int argc, char **argv)
+{
+	switch (argc < 0) {
+		case 0: break;
+		case 1:
+			argc = -argc;
 			break;
 	}
 
+	switch (argc) {
+		case 0:
+		case 1:
+		case 2:
+			_sine_show_error(3);
+			break;
+		case 3: break;
+		default:
+			_sine_show_error(4);
+			break;
+	}
+
+	register
 	FILE *stream = fopen(argv[2], "rb");
 
-	if (stream == NULL)
-		_sine_show_error(4);
+	switch (stream == NULL) {
+		case 0: break;
+		case 1:
+			_sine_show_error(5);
+			break;
+	}
+
+	switch (
+		strcmp(
+strrchr(argv[2], '.'),
+_sine_file_extension
+		) != 0
+	) {
+		case 0: break;
+		case 1:
+			_sine_show_error(6);
+			break;
+	}
 
 	int ch = '\0';
 	int prev_ch = '\0';
@@ -78,27 +158,18 @@ void _sine_run_pattern(int argc, char **argv) {
 	int cur_counter = 0;
 	int just_ignored = 0;
 	int ignored = 0;
-	char cells
-		[_sine_max_cells]
-		[_sine_cell_size];
-
-	void *subject = NULL;
-	void *object = NULL;
-
-	register uint32_t counters
-		[_sine_max_counters];
 
 	for (
 		int i = 0;
 		i < _sine_max_cells;
 		i++
-	) { memcpy(cells[i], "", 1); }
+	) { memcpy(sine_cells[i], "", 1); }
 
 	for (
 		int i = 0;
 		i < _sine_max_counters;
 		i++
-	) { counters[i] = 0; }
+	) { sine_counters[i] = 0; }
 
 	while ((ch = getc(stream)) != EOF) {
 		just_ignored = 0;
@@ -127,27 +198,27 @@ case '<':
 case '$':
 	if (ignored) { goto ending; }
 
-	counters[cur_counter]++;
+	sine_counters[cur_counter]++;
 	break;
 case '@':
 	if (ignored) { goto ending; }
 
-	counters[cur_counter] += 4;
+	sine_counters[cur_counter] += 4;
 	break;
 case '!':
 	if (ignored) { goto ending; }
 
-	counters[cur_counter]--;
+	sine_counters[cur_counter]--;
 	break;
 case ';':
 	if (ignored) { goto ending; }
 
-	counters[cur_counter] -= 4;
+	sine_counters[cur_counter] -= 4;
 	break;
 case '%': {
 	if (ignored) { goto ending; }
 
-	char *str = cells[cur_cell];
+	char *str = sine_cells[cur_cell];
 	int len = strlen(str);
 	str[len++] = prev_ch;
 	str[len] = '\0';
@@ -155,14 +226,15 @@ case '%': {
 } case '^': {
 	if (ignored) { goto ending; }
 
-	char *str = cells[cur_cell];
+	char *str = sine_cells[cur_cell];
 	str[strlen(str) - 1] = '\0';
 	break;
 } case '#': {
 	if (ignored) { goto ending; }
 
-	int counter = counters[cur_counter];
-	char data[256];
+	int8_t counter =
+		sine_counters[cur_counter];
+	char data[_sine_data_size];
 	int i = 0;
 
 
@@ -192,7 +264,7 @@ case '%': {
 	if (ignored) { goto ending; }
 
 	fputs(
-		cells[cur_cell],
+		sine_cells[cur_cell],
 		stdout
 	);
 
@@ -208,6 +280,31 @@ case '\\':
 	just_ignored = 0;
 	ignored = 1;
 	continue;
+case '=':
+	if (ignored) { goto ending; }
+
+	if (
+		_sine_runs_count
+		>=
+		_sine_max_runs
+	) { _sine_show_error(7); }
+
+	int sine_argc = 3;
+
+	char *sine_argv[] = {
+		NULL,
+		NULL,
+		sine_cells[cur_cell]
+	};
+
+	++_sine_runs_count;
+
+	_sine_run_pattern(
+		sine_argc,
+		sine_argv
+	);
+
+	break;
 		}
 
 ending:
@@ -220,6 +317,9 @@ ending:
 
 		prev_ch = ch;
 	}
+
+	if (_sine_runs_count > 0)
+	{ ++_sine_runs_count; }
 
 	fclose(stream);
 }
@@ -273,11 +373,26 @@ void sine_exec(int argc, char **argv) {
 	_sine_show_error(2);
 }
 
+/* == sine main functions */
+
 #ifdef _sine_exe
+
+static
+void _sine_signal(int signum) {
+	switch (signum != SIGSEGV) {
+		case 0: return;
+		case 1: break;
+	}
+
+	_sine_show_error(8);
+}
+
 void main(int argc, char **argv) {
+	signal(SIGSEGV, _sine_signal);
 	sine_exec(argc, argv);
 	exit(EXIT_SUCCESS);
 }
+
 #endif /* _sine_exe */
 
 #ifdef __cplusplus

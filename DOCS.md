@@ -55,4 +55,6 @@ list that contains all of them:
 | ^      | Removes the last cell's character. |
 | #      | Output the counter's value.  |
 | .      | Output the cell's value.     |
-| \      | Ignores the next command next to it. |
+| ,      | Output the previously defined character in code. |
+| \      | Ignores the next command besides it. |
+| =      | Runs another script of with the path of current cell value. |
