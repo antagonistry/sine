@@ -2,14 +2,14 @@
 
 ## Sypnosis.
 
-SINE [SINE's Not Exponent]
+SINE **[SINE's Not Exponent]**
 is an interpreter that can be used to
 calculate cells and counters dynamically.
 
-## Why Sine?
+## Why SINE?
 
-SINE is a very light-weighted interpreter and
-is blazingly fast, and no artificial
+SINE is a **very light-weighted interpreter**
+and is blazingly fast, and no artificial
 intelligence have been used.
 
 ## Installation Guide.

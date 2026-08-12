@@ -15,7 +15,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(2)
+#define _sine_version		(4)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
