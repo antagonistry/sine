@@ -1,8 +1,9 @@
-# SINE [SINE's Not Exponent]
+# SINE Language
 
 ## Sypnosis.
 
-SINE is a virtual machine that can be used to
+SINE [SINE's Not Exponent]
+is an interpreter that can be used to
 calculate cells and counters dynamically.
 
 ## Why Sine?

@@ -59,4 +59,3 @@ list that contains all of them:
 | .      | Output the cell's value.     |
 | ,      | Output the previously defined character in code. |
 | \      | Ignores the next command besides it. |
-| =      | Runs another script of with the path of current cell value. |

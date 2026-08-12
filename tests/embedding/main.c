@@ -8,7 +8,7 @@ void main(void) {
 	char *sine_argv[] = {
 		NULL,
 		"_run",
-		"main-pattern"
+		"main-pattern.sn"
 	};
 
 	sine_exec(sine_argc, sine_argv);

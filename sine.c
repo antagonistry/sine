@@ -15,7 +15,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(3)
+#define _sine_version		(2)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
@@ -219,7 +219,7 @@ case '<':
 	cur_counter--;
 
 	switch (cur_counter) {
-		case 0:
+		case -1:
 cur_counter =
 _sine_max_counters - 1;
 break;
@@ -361,32 +361,6 @@ case '\\':
 	just_ignored = 0;
 	ignored = 1;
 	continue;
-case '=':
-	if (ignored) { goto ending; }
-
-	if (
-		_sine_runs_count
-		>=
-		_sine_max_runs
-	) { _sine_show_error(7); }
-
-	int sine_argc = 3;
-
-	char *sine_argv[] = {
-		NULL,
-		NULL,
-		sine_cells[cur_cell]
-	};
-
-	++_sine_runs_count;
-
-	_sine_run_pattern(
-		sine_argc,
-		sine_argv
-	);
-
-	break;
-		}
 
 ending:
 		switch (just_ignored) {
