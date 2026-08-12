@@ -361,6 +361,7 @@ case '\\':
 	just_ignored = 0;
 	ignored = 1;
 	continue;
+		}
 
 ending:
 		switch (just_ignored) {
