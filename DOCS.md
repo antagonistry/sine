@@ -51,8 +51,10 @@ list that contains all of them:
 | @      | Increases counter from its pointer by 4. |
 | !      | Decreases counter from its pointer by 1. |
 | ;      | Decreases counter from its pointer by 4. |
-| %      | Set the last cell's character to the previously defined character in code. |
+| %      | Append the last cell's character to the previously defined character in code. |
 | ^      | Removes the last cell's character. |
+| -      | Removes the first cell's character. |
+| +      | Append the first cell's character to the previously defined character in code. |
 | #      | Output the counter's value.  |
 | .      | Output the cell's value.     |
 | ,      | Output the previously defined character in code. |

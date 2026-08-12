@@ -15,7 +15,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(2)
+#define _sine_version		(3)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
@@ -65,8 +65,7 @@ static
 void _sine_show_usage(void) {
 	puts("[sine: usage] {");
 	puts("\tsine _run <pattern-file>");
-	puts("\tsine _help");
-	puts("\tsine _version");
+	puts("\tsine _ver");
 	puts("}");
 }
 
@@ -75,7 +74,7 @@ void _sine_show_version(void) {
 	fprintf(
 		stdout,
 		"[sine: version]\n"
-		"{ %02d }\n",
+		"{ %03d }\n",
 		_sine_version
 	);
 }
@@ -179,21 +178,54 @@ case '*':
 	if (ignored) { goto ending; }
 
 	cur_cell++;
+
+	switch (cur_cell) {
+		case _sine_max_cells:
+			cur_cell = 0;
+			break;
+		default: break;
+	}
+
 	break;
 case '&':
 	if (ignored) { goto ending; }
 
 	cur_cell--;
+
+	switch (cur_cell) {
+		case -1:
+			cur_cell =
+			_sine_max_cells - 1;
+			break;
+		default: break;
+	}
+
 	break;
 case '>':
 	if (ignored) { goto ending; }
 
 	cur_counter++;
+
+	switch (cur_counter) {
+		case _sine_max_counters:
+			cur_counter = 0;
+		default: break;
+	}
+
 	break;
 case '<':
 	if (ignored) { goto ending; }
 
 	cur_counter--;
+
+	switch (cur_counter) {
+		case 0:
+cur_counter =
+_sine_max_counters - 1;
+break;
+		default: break;
+	}
+
 	break;
 case '$':
 	if (ignored) { goto ending; }
@@ -220,6 +252,12 @@ case '%': {
 
 	char *str = sine_cells[cur_cell];
 	int len = strlen(str);
+
+	switch (len + 1 >= _sine_cell_size) {
+		case 0: break;
+		case 1: goto ending;
+	}
+
 	str[len++] = prev_ch;
 	str[len] = '\0';
 	break;
@@ -227,8 +265,51 @@ case '%': {
 	if (ignored) { goto ending; }
 
 	char *str = sine_cells[cur_cell];
+
+	switch (*str) {
+		case '\0': goto ending;
+		default: break;
+	}
+
 	str[strlen(str) - 1] = '\0';
 	break;
+} case '-': {
+	if (ignored) { goto ending; }
+
+	char *str = sine_cells[cur_cell];
+
+	switch (*str) {
+		case '\0': goto ending;
+		default: break;
+	}
+
+	char *temp = strchr(str, *str) + 1;
+
+	memcpy(
+		sine_cells[cur_cell],
+		temp,
+		strlen(temp) + 1
+	);
+
+	break;
+} case '+': {
+	if (ignored) { goto ending; }
+
+	char *str = sine_cells[cur_cell];
+
+	char temp[_sine_cell_size] = {
+		prev_ch,
+		'\0',
+	};
+
+	strncat(
+		temp,
+		str,
+		_sine_cell_size -
+		strlen(str) - 1
+	);
+
+	memcpy(str, temp, strlen(temp) + 1);
 } case '#': {
 	if (ignored) { goto ending; }
 
@@ -337,9 +418,16 @@ void sine_exec(int argc, char **argv) {
 	if (argc > 3) _sine_show_error(1);
 
 	char *option = argv[1];
+	char *cur_option = "_run";
 
-	switch (strcmp(option, "_run") == 0)
-	{
+	switch (
+		memcmp(
+			option,
+			cur_option,
+			strlen(cur_option) +
+			1
+		) == 0
+	) {
 		case 0: break;
 		case 1:
 			_sine_run_pattern(
@@ -350,18 +438,14 @@ void sine_exec(int argc, char **argv) {
 			return;
 	}
 
-	switch (strcmp(option, "_help") == 0)
-	{
-		case 0: break;
-		case 1:
-			_sine_show_usage();
-			return;
-	}
+	cur_option = "_ver";
 
 	switch (
-		strcmp(
+		memcmp(
 			option,
-			"_version"
+			cur_option,
+			strlen(cur_option) +
+			1
 		) == 0
 	) {
 		case 0: break;
