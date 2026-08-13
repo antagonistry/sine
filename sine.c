@@ -15,7 +15,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(4)
+#define _sine_version		(5)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
@@ -23,10 +23,19 @@ extern "C" {
 #define _sine_cell_size		(512)
 #define _sine_data_size		(256)
 
-/* == sine static variables == */
-
-static
-int _sine_runs_count = 0;
+#define _sine_check \
+switch (ignored) { \
+	case 0: break; \
+	case 1: goto ending; \
+} \
+\
+switch (condition_res) { \
+	case 0: \
+		if (!in_condition) break; \
+		\
+		goto ending; \
+	case 1: break; \
+}
 
 /* == sine global variables == */
 
@@ -96,6 +105,17 @@ case 7: text = "too many runs."; break;
 case 8:
 	text = "stack overflows.";
 	break;
+case 9:
+	text = "cannot stack condition.";
+	break;
+case 10:
+	text = "no condition could"
+		"be terminated.";
+
+	break;
+case 11:
+	text = "unterminated condition.";
+	break;
 default:
 	text = "unknown error reference.";
 	break;
@@ -156,6 +176,10 @@ _sine_file_extension
 	int cur_cell = 0;
 	int cur_counter = 0;
 	int just_ignored = 0;
+	int in_condition = 0;
+	int condition_res = 0;
+	void *subject = NULL;
+	void *object = NULL;
 	int ignored = 0;
 
 	for (
@@ -175,7 +199,7 @@ _sine_file_extension
 
 		switch (ch) {
 case '*':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	cur_cell++;
 
@@ -188,7 +212,7 @@ case '*':
 
 	break;
 case '&':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	cur_cell--;
 
@@ -202,7 +226,7 @@ case '&':
 
 	break;
 case '>':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	cur_counter++;
 
@@ -214,7 +238,7 @@ case '>':
 
 	break;
 case '<':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	cur_counter--;
 
@@ -228,27 +252,27 @@ break;
 
 	break;
 case '$':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	sine_counters[cur_counter]++;
 	break;
 case '@':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	sine_counters[cur_counter] += 4;
 	break;
 case '!':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	sine_counters[cur_counter]--;
 	break;
 case ';':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	sine_counters[cur_counter] -= 4;
 	break;
 case '%': {
-	if (ignored) { goto ending; }
+	_sine_check
 
 	char *str = sine_cells[cur_cell];
 	int len = strlen(str);
@@ -262,7 +286,7 @@ case '%': {
 	str[len] = '\0';
 	break;
 } case '^': {
-	if (ignored) { goto ending; }
+	_sine_check
 
 	char *str = sine_cells[cur_cell];
 
@@ -274,7 +298,7 @@ case '%': {
 	str[strlen(str) - 1] = '\0';
 	break;
 } case '-': {
-	if (ignored) { goto ending; }
+	_sine_check
 
 	char *str = sine_cells[cur_cell];
 
@@ -293,7 +317,7 @@ case '%': {
 
 	break;
 } case '+': {
-	if (ignored) { goto ending; }
+	_sine_check
 
 	char *str = sine_cells[cur_cell];
 
@@ -311,13 +335,21 @@ case '%': {
 
 	memcpy(str, temp, strlen(temp) + 1);
 } case '#': {
-	if (ignored) { goto ending; }
+	_sine_check
 
-	int8_t counter =
+	int_fast8_t counter =
 		sine_counters[cur_counter];
+
 	char data[_sine_data_size];
 	int i = 0;
 
+	switch (counter < 0) {
+		case 0: break;
+		case 1:
+			data[i++] = '-';
+			counter = -counter;
+			break;
+	}
 
 	do {
 		data[i++] =
@@ -342,7 +374,7 @@ case '%': {
 	fputs(data, stdout);
 	break;
 } case '.':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	fputs(
 		sine_cells[cur_cell],
@@ -351,12 +383,111 @@ case '%': {
 
 	break;
 case ',':
-	if (ignored) { goto ending; }
+	_sine_check
 
 	fputc(prev_ch, stdout);
 	break;
-case '\\':
+case '\'':
+	_sine_check
+
+	subject = sine_cells[cur_cell];
+	break;
+case '"':
+	_sine_check
+
+	object = sine_cells[cur_cell];
+	break;
+case ':':
 	if (ignored) { goto ending; }
+
+	switch (in_condition) {
+		case 0: break;
+		case 1: _sine_show_error(9);
+	}
+
+	in_condition = 1;
+
+	condition_res = memcmp(
+		subject,
+		object,
+		strlen(object) + 1
+	) == 0;
+
+	break;
+case '?':
+	if (ignored) { goto ending; }
+
+	switch (in_condition) {
+		case 0: break;
+		case 1: _sine_show_error(9);
+	}
+
+	in_condition = 1;
+
+	condition_res = memcmp(
+		subject,
+		object,
+		strlen(object) + 1
+	) != 0;
+
+	break;
+case '}':
+	if (ignored) { goto ending; }
+
+	switch (in_condition) {
+		case 0: _sine_show_error(10);
+		case 1: break;
+	}
+
+	in_condition = 0;
+	condition_res = 0;
+	break;
+case '/': {
+	_sine_check
+
+	int_fast8_t counter =
+		sine_counters[cur_counter];
+
+	char data[_sine_data_size];
+	int i = 0;
+
+	switch (counter < 0) {
+		case 0: break;
+		case 1:
+			data[i++] = '-';
+			counter = -counter;
+			break;
+	}
+
+	do {
+		data[i++] =
+			(counter % 10) + '0';
+
+		counter /= 10;
+	} while (counter != 0);
+
+	data[i++] = '\0';
+
+	char *data_ptr = data;
+
+	char *reversed_ptr =
+		data + strlen(data) - 1;
+
+	while (data_ptr < reversed_ptr) {
+		char temp = *data_ptr;
+		*data_ptr++ = *reversed_ptr;
+		*reversed_ptr = temp;
+	}
+
+	memcpy(
+		sine_cells[cur_cell],
+		data,
+		sizeof(data)
+	);
+
+	break;
+} case '\\':
+	_sine_check
 
 	just_ignored = 0;
 	ignored = 1;
@@ -374,8 +505,10 @@ ending:
 		prev_ch = ch;
 	}
 
-	if (_sine_runs_count > 0)
-	{ ++_sine_runs_count; }
+	switch (in_condition) {
+		case 0: break;
+		case 1: _sine_show_error(11);
+	}
 
 	fclose(stream);
 }

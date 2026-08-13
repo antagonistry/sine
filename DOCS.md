@@ -58,4 +58,10 @@ list that contains all of them:
 | #      | Output the counter's value.  |
 | .      | Output the cell's value.     |
 | ,      | Output the previously defined character in code. |
+| '      | Set the subject of condition to be the current cell's value. |
+| "      | Set the object of condition to be the current cell's value. |
+| :      | Start a equality-check condition. |
+| ?      | Start a non-equal check condition. |
+| }      | Ends a condition.  |
+| /      | Transforms the current counter's value to the current cell's value. |
 | \      | Ignores the next command besides it. |
