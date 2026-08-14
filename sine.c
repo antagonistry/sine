@@ -15,7 +15,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(6)
+#define _sine_version		(7)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
@@ -181,18 +181,6 @@ _sine_file_extension
 	void *subject = NULL;
 	void *object = NULL;
 	int ignored = 0;
-
-	for (
-		int i = 0;
-		i < _sine_max_cells;
-		i++
-	) { memcpy(sine_cells[i], "", 1); }
-
-	for (
-		int i = 0;
-		i < _sine_max_counters;
-		i++
-	) { sine_counters[i] = 0; }
 
 	while ((ch = getc(stream)) != EOF) {
 		just_ignored = 0;
