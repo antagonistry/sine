@@ -4,13 +4,17 @@
 
 SINE **[SINE's Not Exponent]**
 is an interpreter that can be used to
-calculate cells and counters dynamically.
+**calculate cells and counters dynamically.**
 
 ## Why SINE?
 
 SINE is a **very light-weighted interpreter**
-and is blazingly fast, and no artificial
-intelligence have been used.
+and **no artificial intelligence** have been
+used; and here's why you use SINE
+
+- **Fast:** The interpreter is even faster than **Lua's interpreter**!
+- **Safety:** There are 0 heap memories to deal with.
+- **Portable:** Since SINE is written in C, you can use it with other languages easily!
 
 ## Installation Guide.
 
