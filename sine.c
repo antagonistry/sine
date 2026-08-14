@@ -15,7 +15,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(5)
+#define _sine_version		(6)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
@@ -442,6 +442,10 @@ case '}':
 	in_condition = 0;
 	condition_res = 0;
 	break;
+case '~':
+	_sine_check
+
+	goto cleaning;
 case '/': {
 	_sine_check
 
@@ -510,6 +514,7 @@ ending:
 		case 1: _sine_show_error(11);
 	}
 
+cleaning:
 	fclose(stream);
 }
 

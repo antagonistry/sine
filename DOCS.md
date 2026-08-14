@@ -64,4 +64,5 @@ list that contains all of them:
 | ?      | Start a non-equal check condition. |
 | }      | Ends a condition.  |
 | /      | Transforms the current counter's value to the current cell's value. |
+| ~      | Halts the program.            |
 | \      | Ignores the next command besides it. |
