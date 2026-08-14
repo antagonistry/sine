@@ -15,7 +15,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(7)
+#define _sine_version		(8)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
@@ -476,6 +476,32 @@ case '/': {
 		data,
 		sizeof(data)
 	);
+
+	break;
+} case '`': {
+	static int used = 0;
+	static int dest_cell = 0;
+	static int src_cell = 0;
+
+	_sine_check
+
+	switch (used) {
+		case 0:
+			used = 1;
+			src_cell = cur_cell;
+			break;
+		case 1:
+			used = 0;
+			dest_cell = cur_cell;
+
+memcpy(
+	sine_cells[dest_cell],
+	sine_cells[src_cell],
+	strlen(sine_cells[src_cell]) + 1
+);
+
+			break;
+	}
 
 	break;
 } case '\\':

@@ -60,9 +60,10 @@ list that contains all of them:
 | ,      | Output the previously defined character in code. |
 | '      | Set the subject of condition to be the current cell's value. |
 | "      | Set the object of condition to be the current cell's value. |
-| :      | Start a equality-check condition. |
-| ?      | Start a non-equal check condition. |
-| }      | Ends a condition.  |
+| :      | Starts equality-check condition. |
+| ?      | Starts non-equal check condition. |
+| }      | Ends condition.              |
 | /      | Transforms the current counter's value to the current cell's value. |
+| `      | Extracts the source cell value and then dispose it inside the destination cell. |
 | ~      | Halts the program.            |
 | \      | Ignores the next command besides it. |
