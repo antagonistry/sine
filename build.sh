@@ -1,13 +1,17 @@
 #!/usr/bin/bash
 
 CC="gcc"
-FLAGS="-O3 -ffast-math -fwhole-program"
+FLAGS="-static -O3 \
+	-ffast-math -fwhole-program"
 MACROS="-D_sine_exe"
 OUTPUT="sine"
 SOURCES=$(ls *.c)
 
-if [ command -v $CC >/dev/null 2>&1 ]; then
-	echo "$CC is not installed."
+if ! [ -x "$(command -v $CC)" ]; then
+	echo "cannot find compiler '$CC'."
+	exit 1
 fi
 
 $CC $FLAGS $MACROS -o $OUTPUT $SOURCES
+
+echo "successfully built '$OUTPUT'."
