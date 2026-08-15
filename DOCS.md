@@ -62,6 +62,8 @@ list that contains all of them:
 | "      | Set the object of condition to be the current cell's value. |
 | :      | Starts equality-check condition. |
 | ?      | Starts non-equal check condition. |
+| ]      | Set the current counter's value to the code's data pointer. |
+| [      | Halts and modify the code's data pointer to be the current counter's value. |
 | }      | Ends condition.              |
 | /      | Transforms the current counter's value to the current cell's value. |
 | `      | Extracts the source cell value and then dispose it inside the destination cell. |

@@ -15,23 +15,25 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(8)
+#define _sine_version		(9)
 #define _sine_file_extension	(".sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
 #define _sine_max_runs		(64)
+#define _sine_file_data_size	(2048)
 #define _sine_cell_size		(512)
 #define _sine_data_size		(256)
 
 #define _sine_check \
-switch (ignored) { \
-	case 0: break; \
-	case 1: goto ending; \
+switch (prev_ch) { \
+	case '\\': goto ending; \
+	default: break; \
 } \
 \
 switch (condition_res) { \
 	case 0: \
-		if (!in_condition) break; \
+		if (!in_condition) \
+		{ break; } \
 		\
 		goto ending; \
 	case 1: break; \
@@ -116,6 +118,9 @@ case 10:
 case 11:
 	text = "unterminated condition.";
 	break;
+case 12:
+	text = "too many characters to be"
+		"processed.";
 default:
 	text = "unknown error reference.";
 	break;
@@ -160,9 +165,10 @@ void _sine_run_pattern(int argc, char **argv)
 	}
 
 	switch (
-		strcmp(
+		memcmp(
 strrchr(argv[2], '.'),
-_sine_file_extension
+_sine_file_extension,
+strlen(_sine_file_extension) + 1
 		) != 0
 	) {
 		case 0: break;
@@ -171,19 +177,31 @@ _sine_file_extension
 			break;
 	}
 
+	char file_data[_sine_file_data_size];
+	int file_len = 0;
+	int file_idx = 0;
 	int ch = '\0';
 	int prev_ch = '\0';
 	int cur_cell = 0;
 	int cur_counter = 0;
-	int just_ignored = 0;
 	int in_condition = 0;
 	int condition_res = 0;
 	void *subject = NULL;
 	void *object = NULL;
-	int ignored = 0;
 
 	while ((ch = getc(stream)) != EOF) {
-		just_ignored = 0;
+		switch (file_len) {
+case _sine_file_data_size:
+	_sine_show_error(12);
+default: break;
+		}
+
+		file_data[file_len++] = ch;
+		file_data[file_len] = '\0';
+	}
+
+	while (file_idx < file_len) {
+		ch = file_data[file_idx];
 
 		switch (ch) {
 case '*':
@@ -286,7 +304,7 @@ case '%': {
 	str[strlen(str) - 1] = '\0';
 	break;
 } case '-': {
-	_sine_check
+	 _sine_check
 
 	char *str = sine_cells[cur_cell];
 
@@ -386,7 +404,10 @@ case '"':
 	object = sine_cells[cur_cell];
 	break;
 case ':':
-	if (ignored) { goto ending; }
+	switch (prev_ch) {
+		case '\\': goto ending;
+		default: break;
+	}
 
 	switch (in_condition) {
 		case 0: break;
@@ -403,7 +424,10 @@ case ':':
 
 	break;
 case '?':
-	if (ignored) { goto ending; }
+	switch (prev_ch) {
+		case '\\': goto ending;
+		default: break;
+	}
 
 	switch (in_condition) {
 		case 0: break;
@@ -420,7 +444,10 @@ case '?':
 
 	break;
 case '}':
-	if (ignored) { goto ending; }
+	switch (prev_ch) {
+		case '\\': goto ending;
+		default: break;
+	}
 
 	switch (in_condition) {
 		case 0: _sine_show_error(10);
@@ -429,6 +456,23 @@ case '}':
 
 	in_condition = 0;
 	condition_res = 0;
+	break;
+case ']':
+	_sine_check
+
+	sine_counters[cur_counter] =
+		file_idx;
+
+	break;
+case '[':
+	_sine_check
+
+	file_idx =
+		sine_counters[cur_counter];
+
+	in_condition = 0;
+	condition_res = 0;
+
 	break;
 case '~':
 	_sine_check
@@ -506,21 +550,12 @@ memcpy(
 	break;
 } case '\\':
 	_sine_check
-
-	just_ignored = 0;
-	ignored = 1;
-	continue;
+	break;
 		}
 
 ending:
-		switch (just_ignored) {
-			case 0:
-				ignored = 0;
-				break;
-			case 1: break;
-		}
-
 		prev_ch = ch;
+		++file_idx;
 	}
 
 	switch (in_condition) {
