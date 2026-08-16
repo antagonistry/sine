@@ -1,10 +1,7 @@
 #!/usr/bin/bash
 
 CC="gcc"
-
-FLAGS="-static -O3 \
-	-ffast-math -fwhole-program"
-
+FLAGS="-static -Ofast -flto"
 MACROS="-D_sine_exe"
 OUTPUT="sine"
 SOURCES=$(ls *.c)
@@ -19,7 +16,6 @@ error=$?
 
 if [ $error -ne 0 ]; then
 	echo "compilation failed."
-
 	exit 1
 fi
 
