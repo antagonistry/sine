@@ -10,17 +10,20 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <string.h>
 #include <signal.h>
 
 /* == sine constants == */
 
-#define _sine_version		(9)
+#define _sine_version		(10)
 #define _sine_file_extension	(".sn")
+#define _sine_temp		(".tmp.sn")
 #define _sine_max_cells		(2048)
 #define _sine_max_counters	(2048)
 #define _sine_max_runs		(64)
 #define _sine_file_data_size	(2048)
+#define _sine_line_size		(256)
 #define _sine_cell_size		(512)
 #define _sine_data_size		(256)
 
@@ -65,6 +68,9 @@ void _sine_run_pattern(
 	char **argv
 );
 
+static
+void _sine_enter_repl(void);
+
 /* == sine global
 	functions declarations == */
 
@@ -76,7 +82,11 @@ static
 void _sine_show_usage(void) {
 	puts("[sine: usage] {");
 	puts("\tsine _run <pattern-file>");
+	puts("\t\t[run a pattern file.]");
+	puts("\tsine _rpl");
+	puts("\t\t[enter the REPL mode.]");
 	puts("\tsine _ver");
+	puts("\t\t[get current version.]");
 	puts("}");
 }
 
@@ -111,7 +121,7 @@ case 9:
 	text = "cannot stack condition.";
 	break;
 case 10:
-	text = "no condition could"
+	text = "no condition could "
 		"be terminated.";
 
 	break;
@@ -119,8 +129,11 @@ case 11:
 	text = "unterminated condition.";
 	break;
 case 12:
-	text = "too many characters to be"
+	text = "too many characters to be "
 		"processed.";
+case 13:
+	text = "unable to create temporary "
+		"file.";
 default:
 	text = "unknown error reference.";
 	break;
@@ -567,6 +580,69 @@ cleaning:
 	fclose(stream);
 }
 
+static
+void _sine_enter_repl(void) {
+	puts("[sine: repl] {");
+	fputs("\t", stdout);
+	puts("Welcome to SINE's REPL mode.");
+	fputc('\t', stdout);
+	puts("you can experiment with with");
+	fputc('\t', stdout);
+	puts("in here; and if you want to");
+	fputc('\t', stdout);
+	puts("exit this, press CTRL+D.\n}");
+
+	char line[_sine_line_size];
+
+	while (1) {
+		fputs(" >>> ", stdout);
+
+		fgets(
+			line,
+			sizeof(line),
+			stdin
+		);
+
+		switch (feof(stdin)) {
+			case 0: break;
+			case 1:
+			fputc('\n', stdout);
+			exit(EXIT_SUCCESS);
+		}
+
+		FILE *stream =
+			fopen(
+				_sine_temp,
+				"wb"
+			);
+
+		switch (stream == NULL) {
+			case 0: break;
+			case 1:
+			_sine_show_error(13);
+		}
+
+		fputs(line, stream);
+		fclose(stream);
+
+		char *args[] = {
+			NULL,
+			NULL,
+			_sine_temp
+		};
+
+		_sine_run_pattern(
+			sizeof(args) /
+			sizeof(*args),
+			args
+		);
+
+		unlink(_sine_temp);
+	}
+
+	exit(EXIT_SUCCESS);
+}
+
 /* == sine global functions == */
 
 void sine_exec(int argc, char **argv) {
@@ -600,6 +676,22 @@ void sine_exec(int argc, char **argv) {
 			return;
 	}
 
+	cur_option = "_rpl";
+
+	switch (
+		memcmp(
+			option,
+			cur_option,
+			strlen(cur_option) +
+			1
+		) == 0
+	) {
+		case 0: break;
+		case 1:
+			_sine_enter_repl();
+			return;
+	}
+
 	cur_option = "_ver";
 
 	switch (
@@ -625,12 +717,11 @@ void sine_exec(int argc, char **argv) {
 
 static
 void _sine_signal(int signum) {
-	switch (signum != SIGSEGV) {
-		case 0: return;
-		case 1: break;
+	switch (signum) {
+		case SIGSEGV:
+		_sine_show_error(8);
+		default: break;
 	}
-
-	_sine_show_error(8);
 }
 
 void main(int argc, char **argv) {
