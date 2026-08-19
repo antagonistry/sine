@@ -16,7 +16,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(10)
+#define _sine_version		(11)
 #define _sine_file_extension	(".sn")
 #define _sine_temp		(".tmp.sn")
 #define _sine_max_cells		(2048)
@@ -131,9 +131,13 @@ case 11:
 case 12:
 	text = "too many characters to be "
 		"processed.";
+
+	break;
 case 13:
 	text = "unable to create temporary "
 		"file.";
+
+	break;
 default:
 	text = "unknown error reference.";
 	break;
@@ -353,6 +357,7 @@ case '%': {
 	);
 
 	memcpy(str, temp, strlen(temp) + 1);
+	break;
 } case '#': {
 	_sine_check
 
@@ -724,10 +729,10 @@ void _sine_signal(int signum) {
 	}
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
 	signal(SIGSEGV, _sine_signal);
 	sine_exec(argc, argv);
-	exit(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }
 
 #endif /* _sine_exe */

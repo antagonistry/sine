@@ -1,7 +1,18 @@
 #!/usr/bin/bash
 
 CC="gcc"
-FLAGS="-static -Ofast -flto"
+
+LINKING_FLAGS="-static -flto \
+	-fno-stack-protector"
+
+OPTIMIZATION_FLAGS="-Ofast -ftree-vectorize \
+	-fsimd-cost-model=unlimited"
+
+WARNING_FLAGS="-Wall -Wextra"
+
+FLAGS="$RUNTIME_FLAGS $OPTIMIZATION_FLAGS \
+	$WARNING_FLAGS"
+
 MACROS="-D_sine_exe"
 OUTPUT="sine"
 SOURCES=$(ls *.c)

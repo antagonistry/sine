@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "../../sine.c"
 
-void main(void) {
+int main(void) {
 	int sine_argc = 3;
 
 	char *sine_argv[] = {
@@ -20,5 +20,5 @@ void main(void) {
 		sine_counters[2]
 	);
 
-	exit(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }
