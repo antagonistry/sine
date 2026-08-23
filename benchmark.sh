@@ -53,11 +53,11 @@ do
 	echo -e "======\t$script\t======"
 
 	case $script in *.sn) \
-time -p $SINE _run $path;; esac
+time -p $SINE _run $path >/dev/null;; esac
 	case $script in *.py) \
-time -p $PYTHON $path;; esac
+time -p $PYTHON $path >/dev/null;; esac
 	case $script in *.lua) \
-time -p $LUA $path;; esac
+time -p $LUA $path >/dev/null;; esac
 done
 
 echo -e \
@@ -74,11 +74,11 @@ do
 	echo -e "======\t$script\t======"
 
 	case $script in *.sn) \
-time -p $SINE _run $path;; esac
+time -p $SINE _run $path >/dev/null;; esac
 	case $script in *.py) \
-time -p $PYTHON $path;; esac
+time -p $PYTHON $path >/dev/null;; esac
 	case $script in *.lua) \
-time -p $LUA $path;; esac
+time -p $LUA $path >/dev/null;; esac
 done
 
 cd $OLD_DIR

@@ -1,14 +1,16 @@
 #!/usr/bin/bash
 
-CC="gcc"
+CC=$(command -v clang)
 
 LINKING_FLAGS="-static -flto \
+	-nostartfiles -fno-builtin \
 	-fno-stack-protector"
 
-OPTIMIZATION_FLAGS="-Ofast -ftree-vectorize \
-	-fsimd-cost-model=unlimited"
+OPTIMIZATION_FLAGS="-O3 -ffast-math \
+	-ftree-vectorize \
+	-fomit-frame-pointer"
 
-WARNING_FLAGS="-Wall -Wextra"
+WARNING_FLAGS="-Wall -Wextra -Wno-switch-bool"
 
 FLAGS="$RUNTIME_FLAGS $OPTIMIZATION_FLAGS \
 	$WARNING_FLAGS"
@@ -17,7 +19,7 @@ MACROS="-D_sine_exe"
 OUTPUT="sine"
 SOURCES=$(ls *.c)
 
-if ! [ -x "$(command -v $CC)" ]; then
+if [ "$(command -v $CC)" == "" ]; then
 	echo "cannot find compiler '$CC'."
 	exit 1
 fi

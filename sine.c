@@ -16,13 +16,13 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(11)
+#define _sine_version		(12)
 #define _sine_file_extension	(".sn")
 #define _sine_temp		(".tmp.sn")
-#define _sine_max_cells		(2048)
-#define _sine_max_counters	(2048)
+#define _sine_max_cells		(128)
+#define _sine_max_counters	(128)
 #define _sine_max_runs		(64)
-#define _sine_file_data_size	(2048)
+#define _sine_file_data_size	(4096)
 #define _sine_line_size		(256)
 #define _sine_cell_size		(512)
 #define _sine_data_size		(256)
@@ -35,10 +35,11 @@ switch (prev_ch) { \
 \
 switch (condition_res) { \
 	case 0: \
-		if (!in_condition) \
-		{ break; } \
-		\
-		goto ending; \
+		switch (~(in_condition) + 2) \
+		{ \
+			case 0: goto ending; \
+			case 1: break; \
+		} \
 	case 1: break; \
 }
 
@@ -47,7 +48,7 @@ switch (condition_res) { \
 char sine_cells
 	[_sine_max_cells][_sine_cell_size];
 
-int_fast8_t sine_counters
+int_fast16_t sine_counters
 	[_sine_max_counters];
 
 /* == sine static
@@ -155,7 +156,7 @@ void _sine_run_pattern(int argc, char **argv)
 	switch (argc < 0) {
 		case 0: break;
 		case 1:
-			argc = -argc;
+			argc = (~argc) + 1;
 			break;
 	}
 
@@ -177,21 +178,19 @@ void _sine_run_pattern(int argc, char **argv)
 	switch (stream == NULL) {
 		case 0: break;
 		case 1:
-			_sine_show_error(5);
-			break;
+		_sine_show_error(5);
 	}
 
 	switch (
 		memcmp(
 strrchr(argv[2], '.'),
 _sine_file_extension,
-strlen(_sine_file_extension) + 1
-		) != 0
+strlen(_sine_file_extension + 1)
+		)
 	) {
 		case 0: break;
-		case 1:
-			_sine_show_error(6);
-			break;
+		default:
+		_sine_show_error(6);
 	}
 
 	char file_data[_sine_file_data_size];
@@ -206,9 +205,12 @@ strlen(_sine_file_extension) + 1
 	void *subject = NULL;
 	void *object = NULL;
 
-	while ((ch = getc(stream)) != EOF) {
+	while (
+		~((ch = getc(stream)) ^ EOF)
+			+ 1
+	) {
 		switch (file_len) {
-case _sine_file_data_size:
+case _sine_file_data_size - 1:
 	_sine_show_error(12);
 default: break;
 		}
@@ -361,7 +363,7 @@ case '%': {
 } case '#': {
 	_sine_check
 
-	int_fast8_t counter =
+	int_fast16_t counter =
 		sine_counters[cur_counter];
 
 	char data[_sine_data_size];
@@ -434,11 +436,11 @@ case ':':
 
 	in_condition = 1;
 
-	condition_res = memcmp(
+	condition_res = ~(memcmp(
 		subject,
 		object,
 		strlen(object) + 1
-	) == 0;
+	) ^ 0) + 2;
 
 	break;
 case '?':
@@ -454,11 +456,11 @@ case '?':
 
 	in_condition = 1;
 
-	condition_res = memcmp(
+	condition_res = (~(~(memcmp(
 		subject,
 		object,
 		strlen(object) + 1
-	) != 0;
+	) ^ 0) + 2) ^ 0) + 2;
 
 	break;
 case '}':
@@ -499,7 +501,7 @@ case '~':
 case '/': {
 	_sine_check
 
-	int_fast8_t counter =
+	int_fast16_t counter =
 		sine_counters[cur_counter];
 
 	char data[_sine_data_size];
@@ -509,7 +511,7 @@ case '/': {
 		case 0: break;
 		case 1:
 			data[i++] = '-';
-			counter = -counter;
+			counter = !counter;
 			break;
 	}
 
@@ -658,7 +660,12 @@ void sine_exec(int argc, char **argv) {
 		default: break;
 	}
 
-	if (argc > 3) _sine_show_error(1);
+	switch (~(argc ^ 3) + 2) {
+		case 0: break;
+		case 1: break;
+		default:
+		_sine_show_error(1);
+	}
 
 	char *option = argv[1];
 	char *cur_option = "_run";
@@ -669,10 +676,9 @@ void sine_exec(int argc, char **argv) {
 			cur_option,
 			strlen(cur_option) +
 			1
-		) == 0
+		)
 	) {
-		case 0: break;
-		case 1:
+		case 0:
 			_sine_run_pattern(
 				argc,
 				argv
@@ -689,10 +695,9 @@ void sine_exec(int argc, char **argv) {
 			cur_option,
 			strlen(cur_option) +
 			1
-		) == 0
+		)
 	) {
-		case 0: break;
-		case 1:
+		case 0:
 			_sine_enter_repl();
 			return;
 	}
@@ -705,10 +710,9 @@ void sine_exec(int argc, char **argv) {
 			cur_option,
 			strlen(cur_option) +
 			1
-		) == 0
+		)
 	) {
-		case 0: break;
-		case 1:
+		case 0:
 			_sine_show_version();
 			return;
 	}
