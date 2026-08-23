@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-CC=$(command -v clang)
+CC=$(command -v gcc)
 
 LINKING_FLAGS="-static -flto \
 	-nostartfiles -fno-builtin \
