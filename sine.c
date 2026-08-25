@@ -16,7 +16,7 @@ extern "C" {
 
 /* == sine constants == */
 
-#define _sine_version		(12)
+#define _sine_version		(13)
 #define _sine_file_extension	(".sn")
 #define _sine_temp		(".tmp.sn")
 #define _sine_max_cells		(128)
@@ -35,11 +35,11 @@ switch (prev_ch) { \
 \
 switch (condition_res) { \
 	case 0: \
-		switch (~(in_condition) + 2) \
-		{ \
-			case 0: goto ending; \
-			case 1: break; \
-		} \
+	switch (~(in_condition) + 2) \
+	{ \
+		case 0: goto ending; \
+		case 1: break; \
+	} \
 	case 1: break; \
 }
 
@@ -382,7 +382,7 @@ case '%': {
 			(counter % 10) + '0';
 
 		counter /= 10;
-	} while (counter != 0);
+	} while (counter);
 
 	data[i++] = '\0';
 
@@ -392,9 +392,10 @@ case '%': {
 		data + strlen(data) - 1;
 
 	while (data_ptr < reversed_ptr) {
-		char temp = *data_ptr;
-		*data_ptr++ = *reversed_ptr;
-		*reversed_ptr = temp;
+		*data_ptr ^= *reversed_ptr;
+		*reversed_ptr ^= *data_ptr;
+		*data_ptr ^= *reversed_ptr;
+		++data_ptr, --reversed_ptr;
 	}
 
 	fputs(data, stdout);
@@ -492,7 +493,6 @@ case '[':
 
 	in_condition = 0;
 	condition_res = 0;
-
 	break;
 case '~':
 	_sine_check
@@ -520,7 +520,7 @@ case '/': {
 			(counter % 10) + '0';
 
 		counter /= 10;
-	} while (counter != 0);
+	} while (counter);
 
 	data[i++] = '\0';
 
@@ -530,9 +530,10 @@ case '/': {
 		data + strlen(data) - 1;
 
 	while (data_ptr < reversed_ptr) {
-		char temp = *data_ptr;
-		*data_ptr++ = *reversed_ptr;
-		*reversed_ptr = temp;
+		*data_ptr ^= *reversed_ptr;
+		*reversed_ptr ^= *data_ptr;
+		*data_ptr ^= *reversed_ptr;
+		++data_ptr, --reversed_ptr;
 	}
 
 	memcpy(

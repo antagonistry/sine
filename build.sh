@@ -10,7 +10,8 @@ OPTIMIZATION_FLAGS="-O3 -ffast-math \
 	-ftree-vectorize \
 	-fomit-frame-pointer"
 
-WARNING_FLAGS="-Wall -Wextra -Wno-switch-bool"
+WARNING_FLAGS="-Wall -Wextra \
+	-Wno-switch-bool"
 
 FLAGS="$RUNTIME_FLAGS $OPTIMIZATION_FLAGS \
 	$WARNING_FLAGS"
